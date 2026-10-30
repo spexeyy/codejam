@@ -17,7 +17,7 @@ const events: Event[] = [
     solution:
       "Un término nuevo en el simulador. La búsqueda no cambió: adelanta sola a los premium.",
     files: 7,
-    minutes: 20,
+    minutes: 23,
   },
 ];
 

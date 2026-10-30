@@ -6,7 +6,7 @@ Los minutos van desde que recibimos el evento hasta el commit que lo resuelve. L
 
 | Evento              | Qué cambió                                                                                                                                 | Cómo lo resolvimos                                                                                                                                                | Archivos | Líneas | Minutos | Tests nuevos |
 | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ------ | ------- | ------------ |
-| 1 · Pedidos premium | Algunos pedidos son premium. Por cada uno se paga `costo_por_minuto_premium` por cada minuto desde la salida hasta que empieza su entrega. | Leímos el campo nuevo, sumamos el término al simulador y a la cota inferior. El planificador no cambió: al optimizar el costo nuevo, adelanta solo a los premium. | 7        | 117    | 20      | 4            |
+| 1 · Pedidos premium | Algunos pedidos son premium. Por cada uno se paga `costo_por_minuto_premium` por cada minuto desde la salida hasta que empieza su entrega. | Leímos el campo nuevo, sumamos el término al simulador y a la cota inferior. El planificador no cambió: al optimizar el costo nuevo, adelanta solo a los premium. | 7        | 117    | 23      | 4            |
 
 ## Evento 1: pedidos premium
 
