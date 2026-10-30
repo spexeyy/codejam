@@ -34,7 +34,9 @@ Lo resolvimos con dos cambios. Agregamos un movimiento de ruina y recreación, t
 
 ## La temperatura del recocido la medimos
 
-La receta habitual es arrancar con una temperatura que acepte la mitad de los empeoramientos típicos. La probamos y la búsqueda se dispersaba: terminaba en 941, igual que la inserción. Medimos varias temperaturas con cuatro semillas cada una y la única que llegó a 913 en las cuatro fue arrancar con el 0,5 % del costo inicial y enfriar 200 veces. Los números están en `docs/benchmarks.md`. Si los datasets fueran mucho más grandes habría que volver a medir.
+La receta habitual es arrancar con una temperatura que acepte la mitad de los empeoramientos típicos. La probamos y la búsqueda se dispersaba: terminaba en 941, igual que la inserción. Medimos varias temperaturas con cuatro semillas cada una y la única que llegó a 913 en las cuatro fue arrancar con el 0,5 % del costo inicial y enfriar 200 veces. Los números están en `docs/benchmarks.md`.
+
+Más tarde, al probar escenarios grandes para la demo, vimos que con 200 pedidos el recocido no mejoraba nada la inserción. El error era cómo habíamos escrito la temperatura: un movimiento toca pocos pedidos, así que su efecto depende del costo por pedido, no del costo total. Al atarla al total, con 200 pedidos arrancaba demasiado caliente. La cambiamos al 20 % del costo promedio por pedido, que con 40 pedidos da exactamente el mismo número. Los 20 escenarios del benchmark dieron los mismos costos, y con 200 pedidos el plan bajó de 1.765 a 1.618.
 
 ## Iteraciones fijas y semilla, en lugar de un tiempo límite
 

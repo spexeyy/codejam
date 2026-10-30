@@ -83,4 +83,10 @@ Probamos varias temperaturas iniciales en la práctica, con un millón de iterac
 | 2 %                     | 924, 923, 941, 941     |
 | 4 %                     | 913, 913, 924, 924     |
 
-Nos quedamos con 0,5 % porque fue la única que llegó a 913 con las cuatro semillas.
+Nos quedamos con 0,5 % porque fue la única que llegó a 913 con las cuatro semillas. Después la reescribimos como el 20 % del costo promedio por pedido, que con 40 pedidos es el mismo valor, porque atada al costo total arrancaba demasiado caliente con escenarios grandes.
+
+## Escenarios más grandes
+
+Con un escenario de 200 pedidos y 5 camionetas, la inserción da 1.765. Con la temperatura atada al costo total, el recocido no la mejoraba; con la temperatura por pedido, cada corrida llega a entre 1.618 y 1.857, y nos quedamos con la mejor.
+
+Para la demo en vivo, el escenario que pide el público usa un presupuesto más chico (200 mil iteraciones y una corrida por tamaño de flota): con 100 pedidos tarda menos de 2 segundos y con 150, unos 4.

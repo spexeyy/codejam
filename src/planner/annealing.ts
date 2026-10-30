@@ -252,10 +252,12 @@ function costAfter(
   };
 }
 
-// Lo medimos en la práctica de 40 pedidos (docs/benchmarks.md): con temperatura inicial del
-// 0,5 % del costo y enfriando 200 veces, las cuatro semillas llegan a 913. Más caliente, la
-// búsqueda se dispersa y algunas semillas terminan hasta en 941, el costo de la inserción.
-const HOT_SHARE = 0.005;
+// La temperatura inicial es el 20 % del costo promedio por pedido, porque un movimiento toca
+// pocos pedidos: su efecto escala con el costo por pedido, no con el total. Primero la
+// atamos al costo total (0,5 %) y con 200 pedidos la búsqueda arrancaba tan caliente que
+// terminaba peor que la inserción. Con 40 pedidos las dos fórmulas dan lo mismo, y en la
+// práctica las cuatro semillas que medimos llegan a 913 (docs/benchmarks.md).
+const HOT_PER_ORDER = 0.2;
 const COOLING = 200;
 
 function run(
@@ -270,7 +272,8 @@ function run(
   let best = { solution, cost };
   const history: Progress[] = [];
   const every = Math.max(1, Math.floor(iterations / HISTORY_POINTS));
-  const hot = Math.max(cost * HOT_SHARE, 1e-6);
+  const orders = Math.max(1, evaluator.scenario.orders.length);
+  const hot = Math.max((HOT_PER_ORDER * cost) / orders, 1e-6);
   const cold = hot / COOLING;
   for (let iteration = 0; iteration < iterations; iteration++) {
     if (iteration % every === 0)
