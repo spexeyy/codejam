@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Scenario } from "@/domain/types.ts";
+import type { SolveOptions } from "@/planner/strategies.ts";
 import type { Solution } from "./solver.ts";
 
 export type SolverState =
@@ -16,7 +17,7 @@ export function useSolver() {
 
   useEffect(() => () => worker.current?.terminate(), []);
 
-  const solve = (scenario: Scenario) => {
+  const solve = (scenario: Scenario, options: SolveOptions) => {
     worker.current?.terminate();
     const next = new Worker(new URL("./solver.worker.ts", import.meta.url), {
       type: "module",
@@ -31,7 +32,7 @@ export function useSolver() {
       setState({ status: "failed", message: event.message });
       next.terminate();
     };
-    next.postMessage(scenario);
+    next.postMessage({ scenario, options });
   };
 
   return { state, solve };

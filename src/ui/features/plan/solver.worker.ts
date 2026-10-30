@@ -1,6 +1,5 @@
-import type { Scenario } from "@/domain/types.ts";
-import { solveAll } from "./solver.ts";
+import { solveAll, type SolveRequest } from "./solver.ts";
 
-self.onmessage = (event: MessageEvent<Scenario>) => {
-  self.postMessage(solveAll(event.data));
+self.onmessage = (event: MessageEvent<SolveRequest>) => {
+  self.postMessage(solveAll(event.data.scenario, event.data.options));
 };
