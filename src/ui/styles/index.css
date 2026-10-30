@@ -1,0 +1,144 @@
+@import "tailwindcss";
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+/* Se borran los valores de fábrica de Tailwind para que solo existan los tokens de Warm Minimal. */
+@theme {
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+  --font-*: initial;
+
+  --font-sans: "Geist Variable", system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, monospace;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+
+  --text-metric: 30px;
+  --text-metric--line-height: 36px;
+  --text-page: 18px;
+  --text-page--line-height: 26px;
+  --text-card: 16px;
+  --text-card--line-height: 24px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-label: 13px;
+  --text-label--line-height: 18px;
+
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --color-sunken: #f4f2ee;
+  --color-main: #faf9f7;
+  --color-surface: #fffefc;
+  --color-subtle: #f7f5f1;
+  --color-fill: #efece6;
+
+  --color-fg: #1f1c18;
+  --color-fg-2: #4a453e;
+  --color-fg-3: #6b645a;
+  --color-fg-4: #8a8276;
+
+  --color-border: #e4dfd6;
+  --color-divider: #ebe7e0;
+  --color-row: #f0ece6;
+
+  --color-accent: #2f6bd8;
+  --color-accent-soft: #e8effc;
+  --color-accent-text: #1f58c0;
+  --color-on-accent: #fffefc;
+
+  --color-ok: #3f8f5a;
+  --color-ok-soft: #e9f4ec;
+  --color-ok-text: #2c6b41;
+  --color-warn: #c98a1a;
+  --color-warn-soft: #fbf2df;
+  --color-warn-text: #8a5a0b;
+  --color-bad: #c8463d;
+  --color-bad-soft: #fbeae8;
+  --color-bad-text: #9b2f28;
+
+  /* Paleta de entidades (vehículos, camiones, operarios). Elegidos para que se distingan también con protanopía, deuteranopía y tritanopía (ΔE ≥ 11). */
+  --color-entity-1: #2f84a8;
+  --color-entity-1-soft: #e6eff2;
+  --color-entity-2: #9a3f86;
+  --color-entity-2-soft: #f3e7ee;
+  --color-entity-3: #7a7d24;
+  --color-entity-3-soft: #efefe2;
+  --color-entity-4: #5b3fa0;
+  --color-entity-4-soft: #ebe7f1;
+  --color-entity-5: #8b5a3a;
+  --color-entity-5-soft: #f1eae5;
+  --color-entity-6: #2f6f6a;
+  --color-entity-6-soft: #e6edea;
+  --color-entity-7: #b06a8a;
+  --color-entity-7-soft: #f6ecee;
+  --color-entity-8: #3f4a56;
+  --color-entity-8-soft: #e9e9e7;
+
+  --radius-checkbox: 5px;
+  --radius-control: 9px;
+  --radius-card: 16px;
+  --radius-full: 9999px;
+
+  --shadow-card: 0 1px 2px rgb(31 28 24 / 0.04);
+  --shadow-float:
+    0 12px 32px rgb(31 28 24 / 0.1), 0 2px 6px rgb(31 28 24 / 0.06);
+
+  --spacing-control: 36px;
+  --spacing-row: 56px;
+
+  --animate-dialog-in: dialog-in 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-dialog-out: fade-out 140ms ease-in;
+  --animate-menu-in: menu-in 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-menu-out: fade-out 100ms ease-in;
+  --animate-panel-in: panel-in 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-panel-out: panel-out 180ms ease-in;
+  --animate-fade-in: fade-in 200ms ease-out;
+
+  @keyframes dialog-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+  }
+  @keyframes menu-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px);
+    }
+  }
+  @keyframes panel-in {
+    from {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes panel-out {
+    to {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-sunken font-sans text-body text-fg antialiased;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
