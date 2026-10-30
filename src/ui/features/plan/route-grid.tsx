@@ -15,6 +15,8 @@ type RouteGridProps = {
   focus?: string;
   // Los pedidos aparecen de a uno, para presentar el problema.
   reveal?: boolean;
+  // El número de orden de cada parada; en pantallas chicas o de lejos, ensucia.
+  numbered?: boolean;
 };
 
 const LABELS = [0, 5, 10, 15];
@@ -31,6 +33,7 @@ export function RouteGrid({
   size,
   focus,
   reveal = false,
+  numbered = true,
 }: RouteGridProps) {
   const { world } = scenario;
   const cell =
@@ -193,7 +196,7 @@ export function RouteGrid({
                 {...shape}
               />
             )}
-            {assigned && radius >= 8 && (
+            {numbered && assigned && radius >= 8 && (
               <text
                 x={px(order.position)}
                 y={py(order.position)}

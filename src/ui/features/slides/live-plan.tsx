@@ -1,12 +1,10 @@
 import { LoaderCircle, Play } from "lucide-react";
 import { useState } from "react";
 import {
-  CartesianGrid,
   Line,
   LineChart,
   ReferenceLine,
   ResponsiveContainer,
-  XAxis,
   YAxis,
 } from "recharts";
 import { toClock } from "@/domain/clock.ts";
@@ -17,18 +15,16 @@ import { Button } from "@/ui/components/button.tsx";
 import { cn } from "@/ui/components/cn.ts";
 import { entityColor } from "@/ui/components/entity-color.ts";
 import { SlideFrame } from "@/ui/features/deck/deck.tsx";
-import {
-  audienceScenario,
-  eventOne,
-  practice,
-} from "@/ui/features/plan/datasets.ts";
+import { eventOne, practice } from "@/ui/features/plan/datasets.ts";
 import { RouteGrid } from "@/ui/features/plan/route-grid.tsx";
-import { quickOptions } from "@/ui/features/plan/solver.ts";
 import { useSolver } from "@/ui/features/plan/use-solver.ts";
 
 const number = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 });
 
-type Choice = "practice" | "eventOne" | "audience";
+const choices = [
+  { scenario: practice, label: "práctica" },
+  { scenario: eventOne, label: "con premium (evento 1)" },
+] as const;
 
 function vehicleRows(scenario: Scenario, plan: Plan) {
   const simulation = simulate(scenario, plan);
@@ -42,7 +38,6 @@ function vehicleRows(scenario: Scenario, plan: Plan) {
       id: route.vehicle,
       color: index,
       orders: visits.filter((visit) => visit.status === "delivered").length,
-      blocks: visits.reduce((sum, visit) => sum + visit.blocks, 0),
       back: back ? back.arrival : scenario.world.departure,
     };
   });
@@ -58,8 +53,6 @@ function planned(scenario: Scenario) {
 const initial = planned(practice);
 
 export function LivePlan() {
-  const [choice, setChoice] = useState<Choice>("practice");
-  const [audience, setAudience] = useState({ orders: 60, seed: 1 });
   const [current, setCurrent] = useState(initial);
   const [focus, setFocus] = useState<string>();
   const { state, solve } = useSolver();
@@ -71,19 +64,20 @@ export function LivePlan() {
   if (!simulation.valid) throw new Error(simulation.errors.join("; "));
   const rows = vehicleRows(scenario, shown.plan);
 
-  const pickScenario = (next: Choice) => {
-    const seed = next === "audience" ? audience.seed + 1 : audience.seed;
-    const chosen =
-      next === "practice"
-        ? practice
-        : next === "eventOne"
-          ? eventOne
-          : audienceScenario(audience.orders, seed);
-    setChoice(next);
-    setAudience({ ...audience, seed });
+  // La escala de las barras sale del primer plan y no cambia al optimizar: así se ve cuánto
+  // antes vuelven las camionetas.
+  const start = scenario.world.departure;
+  const baseFinish = Math.max(
+    ...vehicleRows(scenario, base.plan).map((row) => row.back),
+  );
+  const end = Math.ceil(baseFinish / 60) * 60;
+  const width = (minute: number) =>
+    `${((minute - start) / (end - start)) * 100}%`;
+
+  const pick = (next: Scenario) => {
     setFocus(undefined);
-    setCurrent(planned(chosen));
-    solve(chosen, next === "audience" ? quickOptions : defaultOptions);
+    setCurrent(planned(next));
+    solve(next, defaultOptions);
   };
 
   return (
@@ -92,60 +86,25 @@ export function LivePlan() {
         <RouteGrid
           scenario={scenario}
           plan={shown.plan}
-          size={500}
+          size={520}
           focus={focus}
+          numbered={false}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-6">
           <div className="flex items-center gap-2">
-            {(
-              [
-                ["practice", `práctica · ${practice.orders.length} pedidos`],
-                [
-                  "eventOne",
-                  `evento 1 · ${eventOne.orders.filter((order) => order.premium).length} premium`,
-                ],
-              ] as const
-            ).map(([value, label]) => (
+            {choices.map((choice) => (
               <Button
-                key={value}
-                variant={choice === value ? "secondary" : "ghost"}
-                onClick={() => pickScenario(value)}
+                key={choice.label}
+                variant={scenario === choice.scenario ? "secondary" : "ghost"}
+                onClick={() => pick(choice.scenario)}
               >
-                {label}
+                {choice.label}
               </Button>
             ))}
-            <label className="flex items-center gap-2 text-body text-fg-2">
-              <input
-                type="number"
-                min={5}
-                max={150}
-                value={audience.orders}
-                onChange={(event) =>
-                  setAudience({
-                    orders: Math.min(
-                      150,
-                      Math.max(5, Number(event.target.value)),
-                    ),
-                    seed: audience.seed,
-                  })
-                }
-                className="h-control w-20 rounded-control border border-border bg-surface px-2 text-body tabular-nums"
-                aria-label="cantidad de pedidos del escenario del público"
-              />
-              pedidos
-            </label>
-            <Button variant="ghost" onClick={() => pickScenario("audience")}>
-              al azar
-            </Button>
             <Button
               variant="primary"
               className="ml-auto"
-              onClick={() =>
-                solve(
-                  scenario,
-                  choice === "audience" ? quickOptions : defaultOptions,
-                )
-              }
+              onClick={() => solve(scenario, defaultOptions)}
               disabled={state.status === "running"}
             >
               {state.status === "running" ? (
@@ -157,39 +116,38 @@ export function LivePlan() {
             </Button>
           </div>
 
-          <div className="flex items-end gap-6">
-            <div>
-              <p className="text-slide whitespace-nowrap text-fg-3">
-                {solution ? "recocido simulado" : "inserción más barata"}
-              </p>
-              <p className="text-hero font-medium text-fg tabular-nums">
+          <div>
+            <p className="text-slide text-fg-3">
+              {solution
+                ? "costo después de optimizar"
+                : "costo del primer plan"}
+            </p>
+            <div className="flex items-baseline gap-5">
+              {solution && (
+                <span className="text-title text-fg-4 tabular-nums line-through">
+                  {number.format(base.cost)}
+                </span>
+              )}
+              <span className="text-hero font-medium text-fg tabular-nums">
                 {number.format(simulation.cost.total)}
-              </p>
-            </div>
-            <div className="flex flex-col gap-1 pb-3 text-slide text-fg-2 tabular-nums">
-              <span>
-                {simulation.metrics.vehiclesUsed} de {scenario.vehicles.length}{" "}
-                camionetas · {simulation.metrics.totalBlocks} cuadras
-              </span>
-              <span>
-                vuelve la última a las {toClock(simulation.metrics.finish)}
-                {simulation.unassigned.length > 0 &&
-                  ` · ${simulation.unassigned.length} sin entregar`}
-              </span>
-              <span>
-                {simulation.metrics.premiumTotal > 0 &&
-                  `premium: ${simulation.metrics.premiumMinutes} min de espera en total`}
               </span>
               {solution && (
-                <span className="text-ok-text">
-                  {number.format(base.cost - solution.best.cost)} menos que la
-                  inserción · {solution.seconds.toFixed(1).replace(".", ",")} s
+                <span className="rounded-full bg-ok-soft px-4 py-1 text-slide font-medium text-ok-text tabular-nums">
+                  −{number.format(base.cost - solution.best.cost)} en{" "}
+                  {solution.seconds.toFixed(1).replace(".", ",")} s
                 </span>
               )}
             </div>
+            <p className="mt-1 text-slide text-fg-2 tabular-nums">
+              {simulation.metrics.vehiclesUsed} de {scenario.vehicles.length}{" "}
+              camionetas · {simulation.metrics.delivered} de{" "}
+              {simulation.metrics.orders} pedidos entregados
+              {simulation.metrics.premiumTotal > 0 &&
+                ` · ${simulation.metrics.premiumTotal} premium`}
+            </p>
           </div>
 
-          <ul className="flex flex-col gap-1">
+          <ul className="flex flex-col gap-3">
             {rows.map((row) => (
               <li key={row.id}>
                 <button
@@ -199,63 +157,59 @@ export function LivePlan() {
                   }
                   aria-pressed={focus === row.id}
                   className={cn(
-                    "flex w-full items-center gap-3 rounded-control px-3 py-1.5 text-left text-slide text-fg-2 tabular-nums",
+                    "flex w-full items-center gap-4 rounded-control px-3 py-2 text-left text-slide tabular-nums",
                     focus === row.id && "bg-accent-soft",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "size-3.5 rounded-full",
-                      entityColor(row.color).solid,
-                    )}
-                  />
-                  <span className="w-12 font-medium text-fg">{row.id}</span>
-                  <span className="w-32">{row.orders} pedidos</span>
-                  <span className="w-32">{row.blocks} cuadras</span>
-                  <span>vuelve {toClock(row.back)}</span>
+                  <span className="w-10 font-medium text-fg">{row.id}</span>
+                  <span className="relative h-3 flex-1 rounded-full bg-fill">
+                    <span
+                      className={cn(
+                        "absolute inset-y-0 left-0 rounded-full transition-[width] duration-700",
+                        entityColor(row.color).solid,
+                      )}
+                      style={{ width: width(row.back) }}
+                    />
+                  </span>
+                  <span className="w-56 text-fg-2">
+                    {row.orders} pedidos · {toClock(row.back)}
+                  </span>
                 </button>
               </li>
             ))}
+            <li className="flex gap-4 px-3 text-label text-fg-3 tabular-nums">
+              <span className="w-10" />
+              <span className="flex flex-1 justify-between">
+                <span>sale {toClock(start)}</span>
+                <span>{toClock(end)}</span>
+              </span>
+              <span className="w-56">pedidos · vuelve</span>
+            </li>
           </ul>
 
           {solution && solution.best.history.length > 0 && (
-            <div className="h-40 min-h-0">
+            <div className="h-32 min-h-0">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart
                   data={solution.best.history}
                   margin={{ left: 8, right: 8, top: 8 }}
                 >
-                  <CartesianGrid stroke="var(--color-row)" vertical={false} />
-                  <XAxis dataKey="iteration" hide />
                   <YAxis
                     domain={[
                       Math.floor(solution.bound.cost),
-                      Math.ceil(
-                        Math.max(
-                          ...solution.best.history.map(
-                            (point) => point.current,
-                          ),
-                        ),
-                      ),
+                      Math.ceil(solution.base.cost * 1.03),
                     ]}
-                    ticks={[
-                      Math.ceil(solution.bound.cost),
-                      solution.best.cost,
-                      solution.base.cost,
-                    ]}
-                    width={48}
-                    tick={{ fill: "var(--color-fg-3)", fontSize: 13 }}
-                    axisLine={false}
-                    tickLine={false}
+                    allowDataOverflow
+                    hide
                   />
                   <ReferenceLine
                     y={solution.base.cost}
                     stroke="var(--color-fg-4)"
                     strokeDasharray="4 4"
                     label={{
-                      value: "inserción",
+                      value: `primer plan ${number.format(solution.base.cost)}`,
                       fill: "var(--color-fg-3)",
-                      fontSize: 13,
+                      fontSize: 14,
                       position: "insideTopRight",
                     }}
                   />
@@ -264,19 +218,11 @@ export function LivePlan() {
                     stroke="var(--color-ok)"
                     strokeDasharray="4 4"
                     label={{
-                      value: "cota inferior",
+                      value: `ningún plan baja de ${number.format(Math.ceil(solution.bound.cost))}`,
                       fill: "var(--color-ok-text)",
-                      fontSize: 13,
+                      fontSize: 14,
                       position: "insideBottomRight",
                     }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="current"
-                    stroke="var(--color-fg-4)"
-                    dot={false}
-                    strokeWidth={1.5}
-                    animationDuration={2500}
                   />
                   <Line
                     type="stepAfter"

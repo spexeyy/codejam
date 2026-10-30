@@ -16,14 +16,6 @@ export type Solution = {
 
 export type SolveRequest = { scenario: Scenario; options: SolveOptions };
 
-// Para el escenario que pide el público usamos un presupuesto chico: con 150 pedidos tarda
-// unos 4 s y sigue mejorando la inserción. Los casos publicados usan el mismo que el CLI.
-export const quickOptions: SolveOptions = {
-  seed: 1,
-  iterations: 200_000,
-  restarts: 1,
-};
-
 // El trabajo pesado: la inserción, el recocido y la cota. Corre adentro del worker para que
 // la pantalla no se congele los segundos que tarda el recocido.
 export function solveAll(

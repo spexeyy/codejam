@@ -1,4 +1,3 @@
-import { generateScenario } from "@/domain/generate.ts";
 import type { Scenario } from "@/domain/types.ts";
 import { parseScenario } from "@/io/scenario.ts";
 import exampleOrders from "../../../../tests/cases/ejemplo-10/pedidos.json" with { type: "json" };
@@ -29,8 +28,3 @@ export const eventOne: Scenario = parseScenario({
   orders: eventOneOrders,
   vehicles: eventOneVehicles,
 });
-
-// El escenario que pide el público: n pedidos al azar con 5 vehículos, como los de evaluación.
-export function audienceScenario(orders: number, seed: number): Scenario {
-  return generateScenario({ orders, vehicles: 5, seed, premiumShare: 0.15 });
-}
