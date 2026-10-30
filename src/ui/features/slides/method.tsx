@@ -6,23 +6,26 @@ const steps = [
   {
     video: "/videos/insercion.mp4",
     title: "Inserción más barata",
-    text: "Cada pedido va donde menos sube el costo.",
+    what: "Cada pedido va donde menos sube el costo.",
+    why: "Un plan válido en 0,01 s: siempre hay algo que entregar.",
     result: "941",
-    detail: "en 0,01 s",
+    detail: "punto de partida",
   },
   {
     video: "/videos/recocido.mp4",
     title: "Recocido simulado",
-    text: "Millones de cambios; a veces acepta empeorar para no trabarse.",
+    what: "Millones de cambios chicos: mover o intercambiar pedidos.",
+    why: "La inserción no se corrige; aceptar empeorar evita trabarse.",
     result: "913",
-    detail: "en 6 s",
+    detail: "−28 en 6 s",
   },
   {
     video: "/videos/ruina.mp4",
     title: "Ruina y recreación",
-    text: "Vacía una zona entera y la rearma.",
+    what: "Vacía una camioneta o una zona y reinserta sus pedidos.",
+    why: "Con cambios chicos no cerraba camionetas: hasta 4,9 % arriba.",
     result: "0 %",
-    detail: "peor caso (era 4,9 %)",
+    detail: "peor caso, era 4,9 %",
   },
 ];
 
@@ -34,9 +37,12 @@ export function Method() {
   const step = steps[current];
   if (!step) throw new Error(`no hay paso ${current}`);
   return (
-    <SlideFrame title="Cómo lo resolvemos">
-      <div className="flex h-full gap-10">
-        <ol className="flex w-112 flex-col gap-3 pb-6">
+    <SlideFrame
+      title="Cómo lo resolvemos"
+      lead="Cada paso arregla un problema que medimos en el anterior."
+    >
+      <div className="flex h-full gap-8">
+        <ol className="flex basis-2/3 flex-col gap-3">
           {steps.map((item, index) => (
             <li key={item.title} className="flex-1">
               <button
@@ -44,19 +50,30 @@ export function Method() {
                 onClick={() => setCurrent(index)}
                 aria-pressed={current === index}
                 className={cn(
-                  "flex h-full w-full items-center gap-5 rounded-card border px-5 py-4 text-left transition-colors",
+                  "flex h-full w-full items-center gap-6 rounded-card border px-5 py-3 text-left transition-colors",
                   current === index
                     ? "border-accent bg-accent-soft"
                     : "border-border bg-surface hover:bg-subtle",
                 )}
               >
                 <span className="flex flex-1 flex-col gap-1">
-                  <span className="text-lead font-medium text-fg">
+                  <span className="text-slide font-medium text-fg">
                     {index + 1}. {item.title}
                   </span>
-                  <span className="text-slide text-fg-2">{item.text}</span>
+                  <span className="flex gap-3 text-card">
+                    <span className="w-20 shrink-0 whitespace-nowrap text-fg-3">
+                      qué hace
+                    </span>
+                    <span className="text-fg-2">{item.what}</span>
+                  </span>
+                  <span className="flex gap-3 text-card">
+                    <span className="w-20 shrink-0 whitespace-nowrap text-fg-3">
+                      por qué
+                    </span>
+                    <span className="text-fg-2">{item.why}</span>
+                  </span>
                 </span>
-                <span className="flex flex-col items-end">
+                <span className="flex w-32 shrink-0 flex-col items-end">
                   <span className="text-title font-medium text-fg tabular-nums">
                     {item.result}
                   </span>
