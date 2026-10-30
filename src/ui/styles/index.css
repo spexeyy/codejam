@@ -28,6 +28,16 @@
   --text-label: 13px;
   --text-label--line-height: 18px;
 
+  /* Escala de las diapositivas, pensada para leerse desde el fondo de la sala. */
+  --text-hero: 76px;
+  --text-hero--line-height: 80px;
+  --text-title: 44px;
+  --text-title--line-height: 52px;
+  --text-lead: 26px;
+  --text-lead--line-height: 36px;
+  --text-slide: 20px;
+  --text-slide--line-height: 30px;
+
   --color-transparent: transparent;
   --color-current: currentColor;
 
