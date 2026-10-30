@@ -31,11 +31,11 @@ const timeline = [
 
 const roles = [
   {
-    name: "Ignacio Bertola",
+    name: "Ignacio Miguel Bertola",
     text: "Decisiones técnicas, dirección del desarrollo y revisión de cada cambio antes de entrar.",
   },
   {
-    name: "Felix de Felice",
+    name: "Felix Valentino de Felice",
     text: "Presentación, ensayo y pruebas de la demo como usuario.",
   },
   {
@@ -46,7 +46,10 @@ const roles = [
 
 export function Team() {
   return (
-    <SlideFrame title="Cómo trabajamos">
+    <SlideFrame
+      title="Cómo trabajamos"
+      lead="Primero un plan válido y entregable, después mejorarlo, después contarlo."
+    >
       <div className="flex gap-14">
         <ol className="flex flex-1 flex-col gap-3">
           {timeline.map((item, index) => (

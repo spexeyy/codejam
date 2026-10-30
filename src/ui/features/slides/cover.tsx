@@ -19,7 +19,7 @@ export function Cover() {
           qué orden, y cuántas conviene sacar del depósito.
         </p>
         <p className="text-slide text-fg-3">
-          Ignacio Miguel Bertola · Felix Valentino de Felice
+          Ignacio Bertola · Felix de Felice
         </p>
       </div>
       <div className="opacity-80">

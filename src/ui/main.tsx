@@ -6,7 +6,7 @@ import { Benchmark } from "./features/slides/benchmark.tsx";
 import { Cover } from "./features/slides/cover.tsx";
 import { Events } from "./features/slides/events.tsx";
 import { Fleet } from "./features/slides/fleet.tsx";
-import { Limits } from "./features/slides/limits.tsx";
+import { Closing } from "./features/slides/closing.tsx";
 import { LivePlan } from "./features/slides/live-plan.tsx";
 import { Method } from "./features/slides/method.tsx";
 import { Problem } from "./features/slides/problem.tsx";
@@ -25,7 +25,7 @@ const slides: Slide[] = [
   { title: "Cuando cambiaron las reglas", Component: Events },
   { title: "Un solo núcleo, dos salidas", Component: Architecture },
   { title: "Cómo trabajamos", Component: Team },
-  { title: "Lo que nos falta", Component: Limits },
+  { title: "Gracias", Component: Closing },
 ];
 
 const root = document.getElementById("root");
