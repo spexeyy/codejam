@@ -5,6 +5,8 @@ export type Costs = {
   perVehicle: number;
   perMinute: number;
   perFailure: number;
+  // Evento 1: cada minuto que espera un pedido premium desde la salida.
+  perPremiumMinute: number;
 };
 
 export type World = {
@@ -18,7 +20,12 @@ export type World = {
   costs: Costs;
 };
 
-export type Order = { id: number; position: Point; weight: number };
+export type Order = {
+  id: number;
+  position: Point;
+  weight: number;
+  premium: boolean;
+};
 
 export type Vehicle = {
   id: string;

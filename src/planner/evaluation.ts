@@ -1,4 +1,9 @@
-import { hasOrders, indexOrders, runRoute } from "../domain/simulate.ts";
+import {
+  costOf,
+  hasOrders,
+  indexOrders,
+  runRoute,
+} from "../domain/simulate.ts";
 import {
   RELOAD,
   type Order,
@@ -19,6 +24,7 @@ export function at<T>(list: readonly T[], index: number): T {
 }
 
 export type Leg = {
+  premiumMinutes: number;
   blocks: number;
   finish: number;
   used: boolean;
@@ -36,6 +42,7 @@ export function createEvaluator(scenario: Scenario): Evaluator {
   const { world, vehicles } = scenario;
   const orders = indexOrders(scenario.orders);
   const idle: Leg = {
+    premiumMinutes: 0,
     blocks: 0,
     finish: world.departure,
     used: false,
@@ -48,6 +55,7 @@ export function createEvaluator(scenario: Scenario): Evaluator {
     if (!hasOrders(stops)) return idle;
     const outcome = runRoute(world, vehicle, stops, orders);
     return {
+      premiumMinutes: outcome.premiumMinutes,
       blocks: outcome.blocks,
       finish: outcome.finish,
       used: true,
@@ -55,25 +63,27 @@ export function createEvaluator(scenario: Scenario): Evaluator {
     };
   };
 
-  // Es la misma cuenta que simulate(), pero sin armar la lista de visitas: el recocido la repite
-  // millones de veces y solo recalcula las rutas que cambiaron.
+  // Es la misma cuenta que simulate() (usa su costOf), pero sin armar la lista de visitas:
+  // el recocido la repite millones de veces y solo recalcula las rutas que cambiaron.
   const total = (legs: readonly Leg[], failed: number) => {
     let blocks = 0;
     let fixedCost = 0;
+    let premiumMinutes = 0;
     let finish = world.departure;
     for (const current of legs) {
       if (!current.used) continue;
       blocks += current.blocks;
       fixedCost += current.fixedCost;
+      premiumMinutes += current.premiumMinutes;
       finish = Math.max(finish, current.finish);
     }
-    const { costs } = world;
-    return (
-      blocks * costs.perBlock +
-      fixedCost +
-      (finish - world.departure) * costs.perMinute +
-      failed * costs.perFailure
-    );
+    return costOf(world, {
+      blocks,
+      fixedCost,
+      makespan: finish - world.departure,
+      failed,
+      premiumMinutes,
+    }).total;
   };
 
   return { scenario, orders, leg, total };

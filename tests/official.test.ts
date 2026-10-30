@@ -75,7 +75,15 @@ describe.skipIf(!existsSync(join(official, "quickdrop")))(
             serviceMinutes: seed % 7,
             reloadMinutes: seed % 13,
             minutesPerBlock: 1 + (seed % 4),
+            costs: {
+              perBlock: 3,
+              perVehicle: 60,
+              perMinute: 1,
+              perFailure: 200,
+              perPremiumMinute: seed % 3,
+            },
           },
+          premiumShare: 0.3,
         });
         const folder = join(root, `caso-${seed}`);
         const raw = scenarioToRaw(scenario);

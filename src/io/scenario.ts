@@ -41,6 +41,18 @@ function decimal(value: unknown, where: string): number {
   );
 }
 
+// Como _booleano de cargar.py: en CSV vienen 1/0, true/false o si/no.
+function flag(value: unknown, where: string): boolean {
+  if (typeof value === "boolean") return value;
+  if (value === 0 || value === 1) return value === 1;
+  const text = String(value).trim().toLowerCase();
+  if (["1", "true", "si", "sí", "verdadero"].includes(text)) return true;
+  if (["0", "false", "no", "falso"].includes(text)) return false;
+  throw new DataError(
+    `${where}: se esperaba un booleano (1/0) y vino ${JSON.stringify(value)}`,
+  );
+}
+
 function clock(value: unknown, where: string): number {
   if (typeof value === "number" && Number.isInteger(value)) return value;
   try {
@@ -64,6 +76,7 @@ const worldFields = {
   costo_por_vehiculo: [decimal, 60],
   costo_por_minuto_total: [decimal, 1],
   costo_por_falla: [decimal, 200],
+  costo_por_minuto_premium: [decimal, 1],
 } as const;
 
 type WorldField = keyof typeof worldFields;
@@ -91,6 +104,7 @@ export function parseWorld(raw: unknown): World {
       perVehicle: read("costo_por_vehiculo"),
       perMinute: read("costo_por_minuto_total"),
       perFailure: read("costo_por_falla"),
+      perPremiumMinute: read("costo_por_minuto_premium"),
     },
   };
   if (world.width <= 0 || world.height <= 0)
@@ -129,6 +143,9 @@ export function parseOrders(raw: unknown, world: World): Order[] {
       y: integer(row.y, `${where}, y`),
     };
     const weight = integer(row.peso, `${where}, peso`);
+    const premium = isEmpty(row.premium)
+      ? false
+      : flag(row.premium, `${where}, premium`);
     if (seen.has(id)) throw new DataError(`${where}: id repetido`);
     if (!contains(world.width, world.height, position)) {
       throw new DataError(
@@ -137,7 +154,7 @@ export function parseOrders(raw: unknown, world: World): Order[] {
     }
     if (weight < 0) throw new DataError(`${where}: peso negativo`);
     seen.add(id);
-    return { id, position, weight };
+    return { id, position, weight, premium };
   });
 }
 
@@ -208,7 +225,7 @@ export function parseScenario(raw: RawScenario): Scenario {
 // El camino inverso: lo usamos para escribir datasets generados y pasárselos al simulador oficial.
 export function scenarioToRaw(scenario: Scenario): {
   world: Record<string, number | string>;
-  orders: Record<string, number>[];
+  orders: Record<string, number | boolean>[];
   vehicles: Record<string, string>[];
 } {
   const { world } = scenario;
@@ -226,12 +243,14 @@ export function scenarioToRaw(scenario: Scenario): {
       costo_por_vehiculo: world.costs.perVehicle,
       costo_por_minuto_total: world.costs.perMinute,
       costo_por_falla: world.costs.perFailure,
+      costo_por_minuto_premium: world.costs.perPremiumMinute,
     },
     orders: scenario.orders.map((order) => ({
       id: order.id,
       x: order.position.x,
       y: order.position.y,
       peso: order.weight,
+      premium: order.premium,
     })),
     vehicles: scenario.vehicles.map((vehicle) => ({ id: vehicle.id })),
   };

@@ -97,6 +97,15 @@ export function lowerBound(scenario: Scenario, iterations = 400): LowerBound {
         world.serviceMinutes,
     ),
   );
+  // Evento 1: un premium no puede empezar a entregarse antes de lo que se tarda en ir directo.
+  const premiumFloor =
+    world.costs.perPremiumMinute *
+    orders
+      .filter((order) => order.premium)
+      .reduce(
+        (sum, order) => sum + blocks(world.depot, order.position) * fastest,
+        0,
+      );
   const fixed = vehicles
     .map((vehicle) => vehicle.fixedCost)
     .sort((a, b) => a - b);
@@ -108,7 +117,8 @@ export function lowerBound(scenario: Scenario, iterations = 400): LowerBound {
     const cost =
       costs.perBlock * tour +
       fixedCost +
-      costs.perMinute * Math.max(farthest, busy);
+      costs.perMinute * Math.max(farthest, busy) +
+      premiumFloor;
     if (!best || cost < best.cost) best = { cost, tour, vehicles: k };
   }
   if (!best) throw new Error("no hay vehículos");

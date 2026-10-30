@@ -25,7 +25,9 @@ function checked(scenario: Scenario, plan: Parameters<typeof simulate>[1]) {
 // El último costo que registramos en cada caso publicado: ningún cambio puede empeorarlo.
 const recorded = [
   ["practica-40", 913],
-  ["ejemplo-10", 638],
+  // El evento 1 agregó pedidos premium al ejemplo oficial: su registro anterior (638) ya no aplica.
+  ["ejemplo-10", 811],
+  ["evento1-40", 1402],
 ] as const;
 
 describe("casos publicados", () => {
@@ -78,7 +80,13 @@ describe("estrategias", () => {
       seed: 4,
       world: {
         depot: { x: 0, y: 0 },
-        costs: { perBlock: 3, perVehicle: 60, perMinute: 1, perFailure: 1 },
+        costs: {
+          perBlock: 3,
+          perVehicle: 60,
+          perMinute: 1,
+          perFailure: 1,
+          perPremiumMinute: 1,
+        },
       },
     });
     const solved = strategyById("recocido").solve(scenario, quick);
@@ -107,7 +115,13 @@ describe("invariantes del enunciado en escenarios al azar", () => {
             vehicles,
             seed,
             world: {
-              costs: { perBlock: 3, perVehicle, perMinute: 1, perFailure: 200 },
+              costs: {
+                perBlock: 3,
+                perVehicle,
+                perMinute: 1,
+                perFailure: 200,
+                perPremiumMinute: 1,
+              },
             },
           });
           for (const strategy of strategies) {

@@ -37,10 +37,12 @@ export function RouteGrid({
     (size - AXIS - EDGE) / Math.max(world.width - 1, world.height - 1);
   const px = (p: Point) => AXIS + p.x * cell;
   const py = (p: Point) => EDGE + (world.height - 1 - p.y) * cell;
+  // El color sigue el orden de las rutas del plan (primera, segunda...), no el número de la
+  // camioneta: así dos rutas nunca quedan con tonos parecidos aunque usen V2 y V4.
   const colorOf = (vehicle: string) => {
-    const index = scenario.vehicles.findIndex((v) => v.id === vehicle);
-    if (index < 0)
-      throw new Error(`el plan usa un vehículo que no existe: ${vehicle}`);
+    const index =
+      plan?.routes.findIndex((route) => route.vehicle === vehicle) ?? -1;
+    if (index < 0) throw new Error(`el plan no tiene la camioneta ${vehicle}`);
     return index;
   };
   const orders = new Map(scenario.orders.map((order) => [order.id, order]));
@@ -145,12 +147,19 @@ export function RouteGrid({
       {scenario.orders.map((order, index) => {
         const assigned = visit.get(order.id);
         const dimmed =
-          focus && assigned && scenario.vehicles[assigned.color]?.id !== focus;
-        const fill = assigned
-          ? `var(${entityColor(assigned.color).token})`
-          : plan
-            ? "var(--color-surface)"
-            : "var(--color-fg-3)";
+          focus && assigned && plan?.routes[assigned.color]?.vehicle !== focus;
+        const size = plan ? radius : radius * 0.7;
+        const shape = {
+          fill: assigned
+            ? `var(${entityColor(assigned.color).token})`
+            : plan
+              ? "var(--color-surface)"
+              : "var(--color-fg-3)",
+          stroke:
+            plan && !assigned ? "var(--color-bad)" : "var(--color-surface)",
+          strokeWidth: 1.5,
+          strokeDasharray: plan && !assigned ? "3 2" : undefined,
+        };
         return (
           <motion.g
             key={order.id}
@@ -164,18 +173,26 @@ export function RouteGrid({
               transformOrigin: `${px(order.position)}px ${py(order.position)}px`,
             }}
           >
-            <title>{`pedido ${order.id} · (${order.position.x}, ${order.position.y}) · ${order.weight} kg`}</title>
-            <circle
-              cx={px(order.position)}
-              cy={py(order.position)}
-              r={plan ? radius : radius * 0.7}
-              fill={fill}
-              stroke={
-                plan && !assigned ? "var(--color-bad)" : "var(--color-surface)"
-              }
-              strokeWidth={1.5}
-              strokeDasharray={plan && !assigned ? "3 2" : undefined}
-            />
+            <title>{`pedido ${order.id}${order.premium ? " premium" : ""} · (${order.position.x}, ${order.position.y}) · ${order.weight} kg`}</title>
+            {/* Evento 1: los premium son rombos. La forma dice la prioridad; el color, la camioneta. */}
+            {order.premium ? (
+              <rect
+                x={px(order.position) - size * 0.85}
+                y={py(order.position) - size * 0.85}
+                width={size * 1.7}
+                height={size * 1.7}
+                rx={2}
+                transform={`rotate(45 ${px(order.position)} ${py(order.position)})`}
+                {...shape}
+              />
+            ) : (
+              <circle
+                cx={px(order.position)}
+                cy={py(order.position)}
+                r={size}
+                {...shape}
+              />
+            )}
             {assigned && radius >= 8 && (
               <text
                 x={px(order.position)}

@@ -90,6 +90,7 @@ function main(): number {
       `  vehículos  ${metrics.vehiclesUsed} usados = ${cost.vehicles}`,
       `  tiempo     ${metrics.makespan} min = ${cost.time} (vuelve el último a las ${toClock(metrics.finish)})`,
       `  fallas     ${metrics.failed} = ${cost.failures}`,
+      `  premium    ${metrics.premiumMinutes} min = ${cost.premium}${metrics.premiumTotal > 0 ? ` (${metrics.premiumDelivered}/${metrics.premiumTotal} entregados)` : ""}`,
       `Entregas: ${metrics.delivered}/${metrics.orders}${simulation.unassigned.length > 0 ? ` · sin entregar: ${simulation.unassigned.join(", ")}` : ""}`,
       "",
     ].join("\n"),

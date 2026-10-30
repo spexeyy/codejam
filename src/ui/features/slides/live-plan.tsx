@@ -19,29 +19,28 @@ import { entityColor } from "@/ui/components/entity-color.ts";
 import { SlideFrame } from "@/ui/features/deck/deck.tsx";
 import {
   audienceScenario,
-  example,
+  eventOne,
   practice,
 } from "@/ui/features/plan/datasets.ts";
 import { RouteGrid } from "@/ui/features/plan/route-grid.tsx";
+import { quickOptions } from "@/ui/features/plan/solver.ts";
 import { useSolver } from "@/ui/features/plan/use-solver.ts";
 
 const number = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 0 });
 
-type Choice = "practice" | "example" | "audience";
+type Choice = "practice" | "eventOne" | "audience";
 
 function vehicleRows(scenario: Scenario, plan: Plan) {
   const simulation = simulate(scenario, plan);
   if (!simulation.valid) throw new Error(simulation.errors.join("; "));
-  return plan.routes.map((route) => {
+  return plan.routes.map((route, index) => {
     const visits = simulation.visits.filter(
       (visit) => visit.vehicle === route.vehicle,
     );
     const back = visits[visits.length - 1];
     return {
       id: route.vehicle,
-      color: scenario.vehicles.findIndex(
-        (vehicle) => vehicle.id === route.vehicle,
-      ),
+      color: index,
       orders: visits.filter((visit) => visit.status === "delivered").length,
       blocks: visits.reduce((sum, visit) => sum + visit.blocks, 0),
       back: back ? back.arrival : scenario.world.departure,
@@ -77,14 +76,14 @@ export function LivePlan() {
     const chosen =
       next === "practice"
         ? practice
-        : next === "example"
-          ? example
+        : next === "eventOne"
+          ? eventOne
           : audienceScenario(audience.orders, seed);
     setChoice(next);
     setAudience({ ...audience, seed });
     setFocus(undefined);
     setCurrent(planned(chosen));
-    solve(chosen);
+    solve(chosen, next === "audience" ? quickOptions : defaultOptions);
   };
 
   return (
@@ -101,7 +100,10 @@ export function LivePlan() {
             {(
               [
                 ["practice", `práctica · ${practice.orders.length} pedidos`],
-                ["example", `ejemplo · ${example.orders.length} pedidos`],
+                [
+                  "eventOne",
+                  `evento 1 · ${eventOne.orders.filter((order) => order.premium).length} premium`,
+                ],
               ] as const
             ).map(([value, label]) => (
               <Button
@@ -116,11 +118,14 @@ export function LivePlan() {
               <input
                 type="number"
                 min={5}
-                max={400}
+                max={150}
                 value={audience.orders}
                 onChange={(event) =>
                   setAudience({
-                    orders: Number(event.target.value),
+                    orders: Math.min(
+                      150,
+                      Math.max(5, Number(event.target.value)),
+                    ),
                     seed: audience.seed,
                   })
                 }
@@ -135,7 +140,12 @@ export function LivePlan() {
             <Button
               variant="primary"
               className="ml-auto"
-              onClick={() => solve(scenario)}
+              onClick={() =>
+                solve(
+                  scenario,
+                  choice === "audience" ? quickOptions : defaultOptions,
+                )
+              }
               disabled={state.status === "running"}
             >
               {state.status === "running" ? (
@@ -165,6 +175,10 @@ export function LivePlan() {
                 vuelve la última a las {toClock(simulation.metrics.finish)}
                 {simulation.unassigned.length > 0 &&
                   ` · ${simulation.unassigned.length} sin entregar`}
+              </span>
+              <span>
+                {simulation.metrics.premiumTotal > 0 &&
+                  `premium: ${simulation.metrics.premiumMinutes} min de espera en total`}
               </span>
               {solution && (
                 <span className="text-ok-text">

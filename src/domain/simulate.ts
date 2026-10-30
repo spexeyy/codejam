@@ -33,6 +33,8 @@ export type RouteOutcome = {
   blocks: number;
   finish: number;
   delivered: number;
+  // Evento 1: minutos desde la salida hasta que empieza cada entrega premium de la ruta.
+  premiumMinutes: number;
 };
 
 export type CostBreakdown = {
@@ -40,6 +42,7 @@ export type CostBreakdown = {
   vehicles: number;
   time: number;
   failures: number;
+  premium: number;
   total: number;
 };
 
@@ -51,6 +54,9 @@ export type Metrics = {
   vehiclesUsed: number;
   makespan: number;
   finish: number;
+  premiumMinutes: number;
+  premiumTotal: number;
+  premiumDelivered: number;
 };
 
 export type Simulation =
@@ -120,6 +126,7 @@ export function runRoute(
   let trip = 1;
   let total = 0;
   let delivered = 0;
+  let premiumMinutes = 0;
   for (const stop of stops) {
     if (stop === RELOAD) {
       const distance = blocks(position, depot);
@@ -153,6 +160,7 @@ export function runRoute(
     const arrival = time;
     time = arrival + world.serviceMinutes;
     delivered += 1;
+    if (order.premium) premiumMinutes += arrival - world.departure;
     onVisit?.({
       vehicle: vehicle.id,
       trip,
@@ -181,7 +189,7 @@ export function runRoute(
     departure: time,
     status: "return",
   });
-  return { blocks: total, finish: time, delivered };
+  return { blocks: total, finish: time, delivered, premiumMinutes };
 }
 
 export function costOf(
@@ -191,18 +199,21 @@ export function costOf(
     fixedCost: number;
     makespan: number;
     failed: number;
+    premiumMinutes: number;
   },
 ): CostBreakdown {
   const { costs } = world;
   const distance = totals.blocks * costs.perBlock;
   const time = totals.makespan * costs.perMinute;
   const failures = totals.failed * costs.perFailure;
+  const premium = totals.premiumMinutes * costs.perPremiumMinute;
   return {
     distance,
     vehicles: totals.fixedCost,
     time,
     failures,
-    total: distance + totals.fixedCost + time + failures,
+    premium,
+    total: distance + totals.fixedCost + time + failures + premium,
   };
 }
 
@@ -221,6 +232,8 @@ export function simulate(scenario: Scenario, plan: Plan): Simulation {
   let fixedCost = 0;
   let used = 0;
   let delivered = 0;
+  let premiumMinutes = 0;
+  let premiumDelivered = 0;
   let finish = world.departure;
 
   for (const route of plan.routes) {
@@ -232,12 +245,17 @@ export function simulate(scenario: Scenario, plan: Plan): Simulation {
     if (!hasOrders(route.stops)) continue;
     used += 1;
     fixedCost += vehicle.fixedCost;
-    for (const stop of route.stops) if (stop !== RELOAD) assigned.add(stop);
+    for (const stop of route.stops) {
+      if (stop === RELOAD) continue;
+      assigned.add(stop);
+      if (orders.get(stop)?.premium) premiumDelivered += 1;
+    }
     const outcome = runRoute(world, vehicle, route.stops, orders, (visit) =>
       visits.push(visit),
     );
     totalBlocks += outcome.blocks;
     delivered += outcome.delivered;
+    premiumMinutes += outcome.premiumMinutes;
     finish = Math.max(finish, outcome.finish);
   }
 
@@ -257,12 +275,16 @@ export function simulate(scenario: Scenario, plan: Plan): Simulation {
       vehiclesUsed: used,
       makespan,
       finish,
+      premiumMinutes,
+      premiumTotal: scenario.orders.filter((order) => order.premium).length,
+      premiumDelivered,
     },
     cost: costOf(world, {
       blocks: totalBlocks,
       fixedCost,
       makespan,
       failed: unassigned.length,
+      premiumMinutes,
     }),
   };
 }

@@ -3,7 +3,7 @@ import { toMinutes } from "../src/domain/clock.ts";
 import { simulate } from "../src/domain/simulate.ts";
 import type { Plan, Scenario } from "../src/domain/types.ts";
 import { loadPlan, loadScenario } from "../src/io/files.ts";
-import { DataError, parseScenario } from "../src/io/scenario.ts";
+import { DataError, parseCsv, parseScenario } from "../src/io/scenario.ts";
 
 // Los mismos casos que trae tests/test_simulador.py en el repo del simulador oficial.
 
@@ -48,6 +48,7 @@ describe("cálculo básico", () => {
       vehicles: 60,
       time: 58,
       failures: 0,
+      premium: 0,
       total: 166,
     });
   });
@@ -91,6 +92,35 @@ describe("cálculo básico", () => {
     const result = valid(run([["A", [1, "DEPOSITO", 2]]]));
     expect(result.metrics.totalBlocks).toBe(5 + 5 + 8 + 8);
     expect(result.metrics.makespan).toBe(26 * 3 + 2 * 5 + 10);
+  });
+});
+
+describe("pedidos premium (evento 1)", () => {
+  const withPremium = [twoOrders[0], { ...twoOrders[1], premium: true }];
+
+  it("suma los minutos desde la salida hasta que empieza cada entrega premium", () => {
+    const plan = (stops: number[]): Plan => ({
+      routes: [{ vehicle: "A", stops }],
+    });
+    const first = valid(simulate(scenario(withPremium, ["A"]), plan([2, 1])));
+    const later = valid(simulate(scenario(withPremium, ["A"]), plan([1, 2])));
+    expect(first.metrics.premiumMinutes).toBe(24);
+    expect(later.metrics.premiumMinutes).toBe(29);
+    expect(first.cost.premium).toBeLessThan(later.cost.premium);
+  });
+
+  it("el premium vacío en CSV es falso y el 1 es verdadero", () => {
+    const orders = parseCsv("id;x;y;peso;premium\n1;2;3;10;\n2;5;3;5;1\n");
+    const data = scenario(orders, ["A"]);
+    expect(data.orders.map((order) => order.premium)).toEqual([false, true]);
+  });
+
+  it("lee el costo por minuto premium del mundo, con 1 por defecto", () => {
+    expect(scenario(twoOrders, ["A"]).world.costs.perPremiumMinute).toBe(1);
+    expect(
+      scenario(twoOrders, ["A"], { costo_por_minuto_premium: "2,5" }).world
+        .costs.perPremiumMinute,
+    ).toBe(2.5);
   });
 });
 
@@ -150,7 +180,8 @@ describe("validez", () => {
 });
 
 describe("el ejemplo oficial", () => {
-  it("el plan de ejemplo cuesta 1013, en JSON y en CSV", () => {
+  // El evento 1 agregó pedidos premium al ejemplo: el mismo plan pasó de 1013 a 1124.
+  it("el plan de ejemplo cuesta 1124, en JSON y en CSV", () => {
     for (const format of ["json", "csv"] as const) {
       const data = loadScenario("tests/cases/ejemplo-10", format);
       const result = valid(
@@ -159,7 +190,7 @@ describe("el ejemplo oficial", () => {
           loadPlan(`tests/cases/ejemplo-10/plan_ejemplo.${format}`),
         ),
       );
-      expect(result.cost.total).toBe(1013);
+      expect(result.cost.total).toBe(1124);
     }
   });
 });
