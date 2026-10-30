@@ -253,8 +253,8 @@ function costAfter(
 }
 
 // Lo medimos en la práctica de 40 pedidos (docs/benchmarks.md): con temperatura inicial del
-// 0,5 % del costo y enfriando 200 veces, las cuatro semillas llegan a 913. Con 2 % o más la
-// búsqueda se dispersa y termina en 941, el mismo costo de la inserción.
+// 0,5 % del costo y enfriando 200 veces, las cuatro semillas llegan a 913. Más caliente, la
+// búsqueda se dispersa y algunas semillas terminan hasta en 941, el costo de la inserción.
 const HOT_SHARE = 0.005;
 const COOLING = 200;
 
