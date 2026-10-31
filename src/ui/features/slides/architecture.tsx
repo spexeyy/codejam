@@ -17,7 +17,7 @@ const outputs = [
 const guarantees = [
   "120 planes al azar dan el mismo costo en nuestro simulador y en el oficial.",
   "El planificador recorre las rutas con la misma función que el simulador: optimiza el costo con el que nos evalúan.",
-  "Un evento que cambia las reglas se traduce en un archivo; el optimizador no se toca.",
+  "Cuando cambian las reglas, cambia el simulador; la búsqueda no se toca.",
 ];
 
 const enter = (delay: number) => ({
