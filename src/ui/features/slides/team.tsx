@@ -24,7 +24,7 @@ const timeline = [
   { time: "17:00", text: "Escala: con 200 pedidos, de 1.765 a 1.618" },
   {
     time: "17:06",
-    text: "Evento 1, premium: 23 minutos, sin tocar la búsqueda",
+    text: "Evento 1, premium: 15 minutos, sin tocar la búsqueda",
   },
   { time: "17:38", text: "Entrega Base: 3 planes válidos (924, 925 y 862)" },
 ];

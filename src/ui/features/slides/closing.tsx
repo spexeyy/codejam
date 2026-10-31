@@ -5,7 +5,7 @@ export function Closing() {
         <h2 className="text-hero font-medium text-fg">Gracias</h2>
         <p className="max-w-2xl text-lead text-fg-2">
           913 en la práctica, 0 derrotas contra OR-Tools en 20 escenarios y el
-          evento 1 resuelto en 23 minutos.
+          evento 1 resuelto en 15 minutos.
         </p>
         <p className="text-slide text-fg-3">
           Ignacio Bertola · Felix de Felice
