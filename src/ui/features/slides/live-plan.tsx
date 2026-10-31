@@ -59,10 +59,11 @@ export function LivePlan() {
 
   const { scenario, base } = current;
   const solution = state.status === "done" ? state.solution : undefined;
-  const shown = solution?.best ?? base;
-  const simulation = simulate(scenario, shown.plan);
+  const latest = state.status === "running" ? state.latest : undefined;
+  const plan = solution?.best.plan ?? latest?.plan ?? base.plan;
+  const simulation = simulate(scenario, plan);
   if (!simulation.valid) throw new Error(simulation.errors.join("; "));
-  const rows = vehicleRows(scenario, shown.plan);
+  const rows = vehicleRows(scenario, plan);
 
   // La escala de las barras sale del primer plan y no cambia al optimizar: así se ve cuánto
   // antes vuelven las camionetas.
@@ -85,7 +86,7 @@ export function LivePlan() {
       <div className="flex h-full gap-10">
         <RouteGrid
           scenario={scenario}
-          plan={shown.plan}
+          plan={plan}
           size={520}
           focus={focus}
           numbered={false}
@@ -120,10 +121,12 @@ export function LivePlan() {
             <p className="text-slide text-fg-3">
               {solution
                 ? "costo después de optimizar"
-                : "costo del primer plan"}
+                : latest
+                  ? "buscando: el mejor plan hasta ahora"
+                  : "costo del primer plan"}
             </p>
             <div className="flex items-baseline gap-5">
-              {solution && (
+              {(solution ?? latest) && (
                 <span className="text-title text-fg-4 tabular-nums line-through">
                   {number.format(base.cost)}
                 </span>

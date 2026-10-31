@@ -20,7 +20,11 @@ export type Strategy = {
   id: string;
   name: string;
   summary: string;
-  solve: (scenario: Scenario, options: SolveOptions) => Solved;
+  solve: (
+    scenario: Scenario,
+    options: SolveOptions,
+    onImprove?: (plan: Plan, cost: number) => void,
+  ) => Solved;
 };
 
 export const defaultOptions: SolveOptions = {
@@ -52,10 +56,16 @@ const annealing: Strategy = {
   name: "Recocido simulado",
   summary:
     "parte de la inserción y prueba cambios chicos; a veces acepta empeorar para no quedarse en un óptimo local",
-  solve: (scenario, options) => {
+  solve: (scenario, options, onImprove) => {
     const evaluator = createEvaluator(scenario);
     const swept = sweepFleet(evaluator);
-    const annealed = anneal(evaluator, swept.starts, options);
+    const annealed = anneal(
+      evaluator,
+      swept.starts,
+      options,
+      onImprove &&
+        ((solution, cost) => onImprove(toPlan(scenario, solution), cost)),
+    );
     return {
       plan: toPlan(scenario, annealed.solution),
       cost: annealed.cost,

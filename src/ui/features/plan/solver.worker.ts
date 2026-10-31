@@ -1,5 +1,12 @@
-import { solveAll, type SolveRequest } from "./solver.ts";
+import { solveAll, type SolveRequest, type SolverMessage } from "./solver.ts";
+
+const post = (message: SolverMessage) => self.postMessage(message);
 
 self.onmessage = (event: MessageEvent<SolveRequest>) => {
-  self.postMessage(solveAll(event.data.scenario, event.data.options));
+  const solution = solveAll(
+    event.data.scenario,
+    event.data.options,
+    (plan, cost) => post({ type: "improve", plan, cost }),
+  );
+  post({ type: "done", solution });
 };

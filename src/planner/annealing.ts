@@ -3,6 +3,7 @@ import { RELOAD, type Stop } from "../domain/types.ts";
 import {
   at,
   legsOf,
+  solutionCost,
   type Evaluator,
   type Leg,
   type Solution,
@@ -24,6 +25,8 @@ export type Annealed = {
 };
 
 type Change = { routes: Map<number, Stop[]>; pool?: number[] };
+
+export type Improve = (solution: Solution, cost: number) => void;
 
 const HISTORY_POINTS = 120;
 
@@ -265,6 +268,7 @@ function run(
   start: Solution,
   iterations: number,
   random: Random,
+  onImprove?: Improve,
 ): Annealed {
   let solution = start;
   let legs = legsOf(evaluator, solution);
@@ -287,7 +291,10 @@ function run(
       solution = apply(solution, change);
       legs = next.legs;
       cost = next.cost;
-      if (cost < best.cost - 1e-9) best = { solution, cost };
+      if (cost < best.cost - 1e-9) {
+        best = { solution, cost };
+        onImprove?.(solution, cost);
+      }
     }
   }
   history.push({ iteration: iterations, current: cost, best: best.cost });
@@ -302,7 +309,18 @@ export function anneal(
   evaluator: Evaluator,
   starts: readonly Solution[],
   options: AnnealingOptions,
+  onImprove?: Improve,
 ): Annealed {
+  // Solo avisamos los planes que mejoran todo lo visto, incluidos los arranques: así quien
+  // mira la búsqueda en vivo ve un costo que solo baja.
+  let record = Math.min(
+    ...starts.map((start) => solutionCost(evaluator, start)),
+  );
+  const report: Improve = (solution, cost) => {
+    if (cost >= record - 1e-9) return;
+    record = cost;
+    onImprove?.(solution, cost);
+  };
   const runs = starts.flatMap((start, index) =>
     Array.from({ length: options.restarts }, (_, restart) =>
       run(
@@ -310,6 +328,7 @@ export function anneal(
         start,
         options.iterations,
         seeded(options.seed + index * 7919 + restart * 104729),
+        report,
       ),
     ),
   );
