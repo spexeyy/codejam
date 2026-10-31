@@ -6,7 +6,7 @@ import { SlideFrame } from "@/ui/features/deck/deck.tsx";
 // (40 pedidos, 5 camionetas, depósito en cualquier lugar), todos medidos con el simulador.
 const versions = [
   { label: "Inserción más barata", gap: 6.5, seconds: "0,01 s" },
-  { label: "Recocido, primera versión", gap: 1.05, seconds: "1,8 s" },
+  { label: "Recocido simulado", gap: 1.05, seconds: "1,8 s" },
   { label: "OR-Tools de Google", gap: 0.23, seconds: "10 s" },
   {
     label: "Recocido + ruina y recreación",
@@ -16,7 +16,7 @@ const versions = [
   },
 ];
 
-const percent = (value: number) => `${value.toFixed(2).replace(".", ",")} %`;
+const percent = (value: number) => `${value.toLocaleString("es-AR")} %`;
 
 export function Benchmark() {
   return (
@@ -71,15 +71,15 @@ export function Benchmark() {
               20 de 20
             </p>
             <p className="text-slide text-fg-2">
-              escenarios donde ningún método encontró algo más barato
+              escenarios sin un plan más barato que el nuestro
             </p>
           </div>
           <div>
             <p className="text-title font-medium text-fg tabular-nums">
-              6 · 14 · 0
+              0 derrotas
             </p>
             <p className="text-slide text-fg-2">
-              contra OR-Tools: le ganamos, empatamos, perdimos
+              contra OR-Tools: le ganamos 6 y empatamos 14
             </p>
           </div>
           <div>
@@ -87,7 +87,8 @@ export function Benchmark() {
               767 a 913
             </p>
             <p className="text-slide text-fg-2">
-              dónde está el óptimo de la práctica; el piso está demostrado
+              el óptimo de la práctica está en este rango: ningún plan baja de
+              767
             </p>
           </div>
         </div>
