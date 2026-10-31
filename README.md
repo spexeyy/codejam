@@ -4,6 +4,19 @@ Este programa lee un dataset de QuickDrop (el mundo, los pedidos y los vehículo
 
 En la práctica de 40 pedidos llegamos a un costo de 913, el mismo que encuentra OR-Tools de Google con el mismo modelo, y usamos 2 de los 5 vehículos.
 
+Con este programa, el equipo Lithium (Ignacio Bertola y Felix de Felice) ganó el primer puesto del Nivel 3 del CodeJam UNViMe 2026.
+
+## Entregas
+
+Todos los planes se validaron con el simulador oficial antes de subirlos, y la web los registró como válidos.
+
+| Cierre   | Dataset A | Dataset B | Dataset C |
+| -------- | --------- | --------- | --------- |
+| Base     | 924       | 925       | 862       |
+| Evento 1 | 1.356     | 1.811     | 1.002     |
+
+Los cierres Evento 2 y Final no llegaron a abrirse.
+
 ## Cómo se usa
 
 Hace falta Node 24 o más nuevo. Primero se instalan las dependencias:
